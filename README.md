@@ -1,4 +1,4 @@
-# Art By City - Tezos Arweave Bundles Demo
+# BundleDAO Demo
 
 ## Install
 ```bash
