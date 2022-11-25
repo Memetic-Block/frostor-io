@@ -2,8 +2,6 @@ import colors from 'vuetify/es5/util/colors'
 
 const appName = 'BundleDAO Demo'
 const baseUrl = process.env.BASE_URL || 'http://localhost:3000'
-const creator = process.env.CREATOR_ADDRESS
-  || 'tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb'
 const host = baseUrl === 'http://localhost:3000'
   ? 'localhost'
   : '0'
@@ -23,6 +21,9 @@ const bundleDAOConfig = {
   port: 3000,
   baseURL: baseUrl + '/bundler'
 }
+const gateway = baseUrl === 'http://localhost:3000'
+  ? 'http://localhost:1984'
+  : 'https://bundledao-demo.artby.city/arweave'
 
 export default {
   // Global page headers: https://go.nuxtjs.dev/config-head
@@ -121,7 +122,8 @@ export default {
       config: arweaveConfig,
       gateway: `${arweaveConfig.protocol}://${arweaveConfig.host}:${arweaveConfig.port}`
     },
-    bundleDAOConfig
+    bundleDAOConfig,
+    gateway
   },
 
   // Build Configuration: https://go.nuxtjs.dev/config-build

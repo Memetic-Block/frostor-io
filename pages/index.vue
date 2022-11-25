@@ -124,7 +124,7 @@
                 <br />
                 <ul>
                   <li v-for="(id, i) in itemTxIds" :key="id">
-                    <a target="_blank" :href="'http://localhost:1984/'+id">
+                    <a target="_blank" :href="$config.gateway+'/'+id">
                       {{ id }}
                     </a>
                   </li>
