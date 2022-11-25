@@ -17,19 +17,12 @@ export const mutations: MutationTree<AuthState> = {
 }
 
 export const actions: ActionTree<AuthState, RootState> = {
-  // async connect({ commit }) {
-  //   try {
-  //     await this.$beacon.wallet.requestPermissions({
-  //       network: { type: this.$beacon.wallet.client.preferredNetwork }
-  //     })
-  //     commit('SET_ADDRESS', await this.$beacon.wallet.getPKH())
-  //   } catch (err) {
-  //     console.error('Error connecting Tezos Wallet', err)
-  //   }
-  // },
+  async connect({ commit }, { address }) {
+    console.log('auth store connect()', address)
+    commit('SET_ADDRESS', address)
+  },
 
-  // async disconnect({ commit }) {
-  //   await this.$beacon.disconnect()
-  //   commit('REMOVE_ADDRESS')
-  // }
+  async disconnect({ commit }) {
+    commit('REMOVE_ADDRESS')
+  }
 }

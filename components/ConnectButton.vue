@@ -2,14 +2,6 @@
   <v-row>
     <v-col class="text-center">
       <div v-if="$accessor.auth.isLoggedIn">
-        <v-chip
-          v-if="$config.creator === $accessor.auth.address"
-          label
-          small
-          color="primary"
-        >
-          Creator
-        </v-chip>
         <code>{{ $accessor.auth.address }}</code>
         <v-btn
           color="error"
@@ -48,17 +40,12 @@ export default class ConnectButton extends Vue {
 
   @debounce
   async connect() {
-    this.loading = true
-    await this.$store.dispatch('auth/connect')
-    this.loading = false
+    this.$deso.login()
   }
 
   @debounce
   async disconnect() {
-    this.loading = true
-    await this.$store.dispatch('auth/disconnect')
-    this.balance = null
-    this.loading = false
+    this.$deso.logout()
   }
 }
 </script>
