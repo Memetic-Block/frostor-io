@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@artbycity/bundledao-client": "^0.1.4",
-    "@artbycity/bundledao-node": "^0.1.1",
+    "@artbycity/bundledao-node": "^0.1.2",
     "@nuxtjs/axios": "^5.13.6",
     "@types/bs58check": "^2.1.0",
     "@types/elliptic": "^6.4.14",
