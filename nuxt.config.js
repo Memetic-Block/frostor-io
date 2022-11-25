@@ -17,6 +17,12 @@ const arweaveConfig = {
     ? Number.parseInt(process.env.ARWEAVE_PORT)
     : 1984
 }
+const bundleDAOConfig = {
+  protocol: 'http',
+  host: 'localhost',
+  port: 3000,
+  baseURL: baseUrl + '/bundler'
+}
 
 export default {
   // Global page headers: https://go.nuxtjs.dev/config-head
@@ -76,7 +82,10 @@ export default {
     // },
   },
 
-  serverMiddleware: [],
+  serverMiddleware: [
+    { path: '/bundler', handler: '~/server-middleware/index.ts' },
+    // { path: '/arweave', handler: '~/server-middleware/arweave.ts' }
+  ],
 
   server: {
     host,
@@ -112,7 +121,8 @@ export default {
     arweave: {
       config: arweaveConfig,
       gateway: `${arweaveConfig.protocol}://${arweaveConfig.host}:${arweaveConfig.port}`
-    }
+    },
+    bundleDAOConfig
   },
 
   // Build Configuration: https://go.nuxtjs.dev/config-build

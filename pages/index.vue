@@ -255,38 +255,38 @@ export default class IndexPage extends Vue {
   @debounce
   async post() {
     if (this.files) {
-      const bundleDAO = new BundleDAOClient({
-        deso: {
-          seedHex: this.seedHex
-        },
-        bundleDAO: {
-          protocol: 'http',
-          host: 'localhost',
-          port: 1985
+      this.loading = true
+      try {
+        const bundleDAO = new BundleDAOClient({
+          deso: {
+            seedHex: this.seedHex
+          },
+          bundleDAO: this.$config.bundleDAOConfig
+        })
+
+        const items = []
+        for (let i = 0; i < this.files.length; i++) {
+          const file = this.files[i]
+          const type = file.type
+          const buffer = await readFileAsArrayBufferAsync(file)
+          const data = new Uint8Array(buffer)
+          const tags = [
+            { name: 'Content-Type', value: type },
+            { name: 'External-Network', value: 'DESO' },
+            { name: 'External-Owner', value: this.publicKey },
+          ]
+          const dataItem = await bundleDAO.createData(data, { tags })
+          items.push(dataItem)
         }
-      })
 
-      const items = []
-      for (let i = 0; i < this.files.length; i++) {
-        const file = this.files[i]
-        const type = file.type
-        const buffer = await readFileAsArrayBufferAsync(file)
-        const data = new Uint8Array(buffer)
-        const tags = [
-          { name: 'Content-Type', value: type },
-          { name: 'External-Network', value: 'DESO' },
-          { name: 'External-Owner', value: this.publicKey },
-        ]
-        const dataItem = await bundleDAO.createData(data, { tags })
-        items.push(dataItem)
-      }
-
-      const bundle = await bundleDAO.createBundle(items)
-      this.bundleTxId = await bundleDAO.postBundle(bundle)
-      if (this.bundleTxId) {
-        this.success = true
-        this.itemTxIds = bundle.getIds()
-      }
+        const bundle = await bundleDAO.createBundle(items)
+        this.bundleTxId = await bundleDAO.postBundle(bundle)
+        if (this.bundleTxId) {
+          this.success = true
+          this.itemTxIds = bundle.getIds()
+        }
+      } catch (e) { console.error(e) }
+      this.loading = false
     }
   }
 }
