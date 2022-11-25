@@ -31,6 +31,42 @@
                   sign bundles and authorized with a spending limit to pay for
                   atomic finality and permanent storage on Arweave. Coming soon!
                 </p>
+                <p>
+                  <ul>
+                    <li>
+                      <a
+                        target="_blank"
+                        href="https://daodao.io/profile/BundleDAO"
+                      >
+                        BundleDAO on DAODAO
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        target="_blank"
+                        href="https://gitlab.com/art-by-city/bundledao-demo"
+                      >
+                        Demo App Code
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        target="_blank"
+                        href="https://gitlab.com/art-by-city/bundledao-client"
+                      >
+                        BundleDAO Client
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        target="_blank"
+                        href="https://gitlab.com/art-by-city/bundledao-node"
+                      >
+                        BundleDAO Node
+                      </a>
+                    </li>
+                  </ul>
+                </p>
               </v-col>
             </v-row>
 
