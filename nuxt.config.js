@@ -75,16 +75,15 @@ export default {
   },
 
   proxy: {
-    // '/arweave/': {
-    //   target: 'http://localhost:1984',
-    //   pathRewrite: { '^/arweave/': '' },
-    //   followRedirects: true
-    // },
+    '/arweave/': {
+      target: 'http://localhost:1984',
+      pathRewrite: { '^/arweave/': '' },
+      followRedirects: true
+    },
   },
 
   serverMiddleware: [
-    { path: '/bundler', handler: '~/server-middleware/index.ts' },
-    // { path: '/arweave', handler: '~/server-middleware/arweave.ts' }
+    { path: '/bundler', handler: '~/server-middleware/index.ts' }
   ],
 
   server: {
