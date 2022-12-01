@@ -46,13 +46,16 @@ export class DeSoPlugin {
   private win: Window | null = null
   private identityBaseUrl: string = 'https://identity.deso.org'
 
-  constructor($store: typeof accessorType) {
+  constructor($store: typeof accessorType, identityBaseUrl?: string) {
+    if (identityBaseUrl) {
+      this.identityBaseUrl = identityBaseUrl
+    }
     this.$store = $store
     this.listen()
   }
 
   login() {
-    this.openWindow('/log-in')
+    this.openWindow('/log-in?accessLevelRequest=4')
   }
 
   logout() {
@@ -98,6 +101,7 @@ export class DeSoPlugin {
         this.handleIdentityMessage(event.data, event.source!)
         break
       default:
+        console.log('got other service message', event.data)
         break
     }
   }
@@ -113,12 +117,16 @@ export class DeSoPlugin {
           id: message.id,
           service: 'identity',
           payload: {}
-        }, { targetOrigin: 'https://identity.deso.org' })
+        }, { targetOrigin: this.identityBaseUrl })
         break
       case 'login':
         const loginPayload: DeSoLoginPayload = message.payload
         if (loginPayload.publicKeyAdded) {
-          this.$store.auth.connect({ address: loginPayload.publicKeyAdded })
+          const address = loginPayload.publicKeyAdded
+          const encryptedSeedHex = loginPayload.users[address].encryptedSeedHex
+          const accessLevel = loginPayload.users[address].accessLevel
+          const accessLevelHmac = loginPayload.users[address].accessLevelHmac
+          this.$store.auth.connect({ address, encryptedSeedHex, accessLevel, accessLevelHmac })
         } else {
           this.$store.auth.disconnect()
         }
@@ -157,5 +165,5 @@ declare module 'vuex/types/index' {
 }
 
 export default ({ $config, $accessor }: Context, inject: Inject) => {
-  inject('deso', new DeSoPlugin($accessor))
+  inject('deso', new DeSoPlugin($accessor, $config.identityUrl))
 }

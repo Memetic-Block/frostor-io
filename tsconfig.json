@@ -20,6 +20,7 @@
       "@nuxt/types",
       "@nuxtjs/axios",
       "@types/node",
+      "@types/secp256k1"
     ]
   },
   "exclude": ["node_modules", ".nuxt", "dist"]

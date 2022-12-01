@@ -20,7 +20,7 @@
           :loading="loading"
           x-small
         >
-          Connect
+          Connect with DeSo
         </v-btn>
       </div>
     </v-col>

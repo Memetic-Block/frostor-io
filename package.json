@@ -13,12 +13,13 @@
     "generate": "nuxt generate"
   },
   "dependencies": {
-    "@artbycity/bundledao-client": "^0.1.4",
+    "@artbycity/bundledao-client": "^0.1.6",
     "@artbycity/bundledao-node": "^0.1.2",
     "@nuxtjs/axios": "^5.13.6",
     "@types/bs58check": "^2.1.0",
     "@types/elliptic": "^6.4.14",
     "@types/hdkey": "^2.0.1",
+    "@types/secp256k1": "^4.0.3",
     "ardb": "^1.1.10",
     "arweave": "^1.11.4",
     "bip39": "^3.0.4",

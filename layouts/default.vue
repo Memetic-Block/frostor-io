@@ -8,7 +8,7 @@
     <v-footer fixed app>
       <span>{{ $config.eventName }}</span>
       <v-spacer />
-      <!-- <ConnectButton /> -->
+      <ConnectButton />
     </v-footer>
   </v-app>
 </template>

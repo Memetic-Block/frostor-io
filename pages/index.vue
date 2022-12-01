@@ -6,12 +6,6 @@
 
         <v-divider />
 
-        <!-- <v-row v-if="!$accessor.auth.isLoggedIn">
-          <v-col cols="12">
-            Click "Connect" below to get started!
-          </v-col>
-        </v-row> -->
-
         <v-row>
           <v-col cols="12">
             <v-row dense>
@@ -31,100 +25,48 @@
                   sign bundles and authorized with a spending limit to pay for
                   atomic finality and permanent storage on Arweave. Coming soon!
                 </p>
-                <p>
-                  <ul>
-                    <li>
-                      <a
-                        target="_blank"
-                        href="https://daodao.io/profile/BundleDAO"
-                      >
-                        BundleDAO on DAODAO
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        target="_blank"
-                        href="https://gitlab.com/art-by-city/bundledao-demo"
-                      >
-                        Demo App Code
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        target="_blank"
-                        href="https://gitlab.com/art-by-city/bundledao-client"
-                      >
-                        BundleDAO Client
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        target="_blank"
-                        href="https://gitlab.com/art-by-city/bundledao-node"
-                      >
-                        BundleDAO Node
-                      </a>
-                    </li>
-                  </ul>
-                </p>
+                <ul>
+                  <li>
+                    <a
+                      target="_blank"
+                      href="https://daodao.io/profile/BundleDAO"
+                    >
+                      BundleDAO on DAODAO
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      target="_blank"
+                      href="https://gitlab.com/art-by-city/bundledao-demo"
+                    >
+                      Demo App Code
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      target="_blank"
+                      href="https://gitlab.com/art-by-city/bundledao-client"
+                    >
+                      BundleDAO Client
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      target="_blank"
+                      href="https://gitlab.com/art-by-city/bundledao-node"
+                    >
+                      BundleDAO Node
+                    </a>
+                  </li>
+                </ul>
               </v-col>
             </v-row>
 
             <v-row dense>
               <v-col cols="12">
-                <v-text-field
-                  v-model="mnemonic"
-                  label="DeSo Seed Phrase"
-                  :disabled="authorized"
-                  :loading="loading"
-                />
-                <v-btn
-                  @click="validateMnemonic"
-                  :disabled="authorized"
-                  :loading="loading"
-                >
-                  Enter Seed Phrase
-                </v-btn>
-                or
-                <v-btn
-                  @click="useAlice"
-                  :disabled="authorized"
-                  :loading="loading"
-                >Use Alice Public Test Seed Phrase</v-btn>
-                <v-btn
-                  color="red"
-                  @click="reset"
-                  :loading="loading"
-                >
-                  Reset
-                </v-btn>
-                <br /><br />
-                <div v-if="publicKey">
-                  <b>Public Key:&nbsp;</b><code>{{ publicKey }}</code>
-                </div>
-                <!-- 1) Request a derived key from the BundleDAO Node
-                <br />
-                <code>
-                  GET /derived-key
-                </code>
-                <br />
-                <v-btn @click="generateDerivedKey" :disabled="!!derivedPublicKey">
-                  Generate Derived Key
-                </v-btn>
-                <br />
-                <i v-if="derivedPublicKey">{{ derivedPublicKey }}</i> -->
+                <ConnectButton />
               </v-col>
             </v-row>
-
-            <!-- <v-row v-show="authorized">
-              <v-col cols="12">
-                2) Authorize derived key &amp; spending limit (coming soon!)
-                <br />
-                <code>POST /authorize</code>
-                <br />
-                <v-btn disabled>Authorize Derived Key</v-btn>
-              </v-col>
-            </v-row> -->
 
             <v-row v-show="authorized">
               <v-col cols="12">
@@ -143,12 +85,16 @@
                 (5mb limit, free for now on demo Arweave testnet)
                 <br />
                 <v-btn
+                  @click="sign"
+                  :loading="loading"
+                  :disabled="!hasFiles"
+                >Sign</v-btn>
+
+                <v-btn
                   @click="post"
                   :loading="loading"
-                  :disabled="(!hasFiles) || success"
-                >
-                  Post
-                </v-btn>
+                  :disabled="!signed"
+                >Post</v-btn>
               </v-col>
             </v-row>
 
@@ -179,6 +125,15 @@
         </v-row>
       </v-col>
     </v-row>
+
+    <iframe
+      id="identity"
+      ref="identity"
+      frameborder="0"
+      :src="identityUrl+'/embed'"
+      style="height: 100vh; width: 100vw; display: none; position: fixed;
+        z-index: 1000; left: 0; top: 0;"
+    ></iframe>
   </div>
 </template>
 
@@ -188,9 +143,22 @@ import * as bip39 from 'bip39'
 import HDKey from 'hdkey'
 import { ec as EC } from 'elliptic'
 import bs58check from 'bs58check'
-import { BundleDAOClient } from '@artbycity/bundledao-client'
+import {
+  BundleDAOClient,
+  InjectedDeSoSigner
+} from '@artbycity/bundledao-client'
+import { createData } from 'arbundles'
+import { Signer } from 'arbundles/src/signing'
+import { SignatureConfig, SIG_CONFIG } from 'arbundles/src/constants'
+import { ethers } from 'ethers'
+import EthereumSigner from 'arbundles/src/signing/chains/ethereumSigner'
+import secp256k1 from 'secp256k1'
+import { arrayify, hashMessage } from 'ethers/lib/utils'
+import base64url from 'base64url'
 
-import { debounce, readFileAsArrayBufferAsync } from '~/util'
+import ConnectButton from '~/components/ConnectButton.vue'
+import { debounce, readFileAsArrayBufferAsync, uuid } from '~/util'
+
 
 const ec = new EC('secp256k1')
 const PUBLIC_KEY_PREFIXES = {
@@ -212,21 +180,40 @@ function seexHexToDeSoPublicKey(seedHex: string): string {
   return bs58check.encode(Buffer.from(prefixAndKey))
 }
 
-@Component
+function publicKeyToECKeyPair(publicKey: string): EC.KeyPair {
+  // Sanity check similar to Base58CheckDecodePrefix from core/lib/base58.go
+  if (publicKey.length < 5) {
+    throw new Error('Failed to decode public key');
+  }
+  const decoded = bs58check.decode(publicKey);
+  const payload = Uint8Array.from(decoded).slice(3);
+
+  const ec = new EC('secp256k1');
+  return ec.keyFromPublic(payload, 'array');
+}
+
+@Component({
+  components: {
+    ConnectButton
+  }
+})
 export default class IndexPage extends Vue {
-  derivedPublicKey: string | null = null
   files: File[] | null = null
-  mnemonic: string = ''
-  publicKey: string = ''
-  seedHex: string = ''
   loading: boolean = false
+  signed: boolean = false
   bundleTxId: string = ''
   success: boolean = false
   itemTxIds: string[] = []
   prevItems: string[] = []
 
+  $refs!: {
+    identity: Vue & HTMLIFrameElement
+  }
+
+  identityUrl: string = this.$config.identityUrl
+
   get authorized(): boolean {
-    return !!this.mnemonic && !!this.publicKey && !!this.seedHex
+    return !!this.$accessor.auth.address
   }
 
   get hasFiles(): boolean {
@@ -244,29 +231,13 @@ export default class IndexPage extends Vue {
   // }
 
   @debounce
-  async useAlice() {
-    this.mnemonic =
-      'twist fluid involve try decorate purse cream phone movie course iron until'
-    await this.validateMnemonic()
-  }
-
-  @debounce
   async reset() {
-    this.derivedPublicKey = null
     this.files = null
-    this.mnemonic = ''
-    this.publicKey = ''
-    this.seedHex = ''
     this.loading = false
+    this.signed = false
     this.bundleTxId = ''
     this.success = false
     this.itemTxIds = []
-  }
-
-  @debounce
-  async generateDerivedKey() {
-    // this.$deso.derive()
-    this.derivedPublicKey = 'test-derived-public-key'
   }
 
   @debounce
@@ -276,16 +247,74 @@ export default class IndexPage extends Vue {
     }
   }
 
+  // @debounce
+  // async validateMnemonic() {
+  //   this.loading = true
+  //   try {
+  //     const seed = bip39.mnemonicToSeedSync(this.mnemonic)
+  //     const keychain = HDKey.fromMasterSeed(seed).derive('m/44\'/0\'/0\'/0/0')
+  //     this.seedHex = keychain.privateKey.toString('hex')
+  //     this.publicKey = seexHexToDeSoPublicKey(this.seedHex)
+  //   } catch (e) { console.error(e) }
+  //   this.loading = false
+  // }
+
   @debounce
-  async validateMnemonic() {
-    this.loading = true
-    try {
-      const seed = bip39.mnemonicToSeedSync(this.mnemonic)
-      const keychain = HDKey.fromMasterSeed(seed).derive('m/44\'/0\'/0\'/0/0')
-      this.seedHex = keychain.privateKey.toString('hex')
-      this.publicKey = seexHexToDeSoPublicKey(this.seedHex)
-    } catch (e) { console.error(e) }
-    this.loading = false
+  async sign() {
+    if (this.files) {
+      this.loading = true
+      try {
+        if (this.$refs.identity.contentWindow) {
+
+        const bundleDAO = new BundleDAOClient({
+          bundleDAO: this.$config.bundleDAOConfig,
+          deso: {
+
+          }
+        })
+
+
+
+          const signer = new InjectedDeSoSigner(
+            this.$accessor.auth.address,
+            (id, message) => {
+              console.log('signing with identity service', id)
+              this.$refs.identity.contentWindow!.postMessage({
+                id,
+                service: 'identity',
+                method: 'signETH',
+                payload: {
+                  unsignedHashes: [ message ],
+                  encryptedSeedHex: this.$accessor.auth.encryptedSeedHex,
+                  accessLevel: this.$accessor.auth.accessLevel,
+                  accessLevelHmac: this.$accessor.auth.accessLevelHmac
+                }
+              }, { targetOrigin: this.$config.identityUrl })
+            }
+          )
+
+          const file = this.files![0]
+          const type = file.type
+          const buffer = await readFileAsArrayBufferAsync(file)
+          const data = new Uint8Array(buffer)
+          const tags = [
+            { name: 'Content-Type', value: type },
+            { name: 'External-Network', value: 'DESO' },
+          ]
+          const dataItem = createData(data, signer, { tags })
+          await dataItem.sign(signer)
+          console.log('[INJECTED] dataItem signed?', dataItem.isSigned())
+          console.log('[INJECTED] dataItem verified?', InjectedDeSoSigner.verify(
+            dataItem.rawOwner,//signer.publicKey,
+            await dataItem.getSignatureData(),
+            dataItem.rawSignature
+          ))
+          console.log('[INJECTED] dataItem valid?', await dataItem.isValid())
+          this.signed = true
+        }
+      } catch (e) { console.error(e) }
+      this.loading = false
+    }
   }
 
   @debounce
@@ -293,34 +322,45 @@ export default class IndexPage extends Vue {
     if (this.files) {
       this.loading = true
       try {
-        const bundleDAO = new BundleDAOClient({
-          deso: {
-            seedHex: this.seedHex
-          },
-          bundleDAO: this.$config.bundleDAOConfig
-        })
+
+
+        // const signer = new DeSoSigner(this.mnemonic)
+        // const signer2 = new EthereumSigner(this.seedHex)
+
+        // console.log('[DESOSIGNER] public key', signer.publicKey.toString('hex'))
+        // console.log('[ETHEREUMSIGNER] public key', signer2.publicKey.toString('hex'))
 
         const items = []
         for (let i = 0; i < this.files.length; i++) {
-          const file = this.files[i]
-          const type = file.type
-          const buffer = await readFileAsArrayBufferAsync(file)
-          const data = new Uint8Array(buffer)
-          const tags = [
-            { name: 'Content-Type', value: type },
-            { name: 'External-Network', value: 'DESO' },
-            { name: 'External-Owner', value: this.publicKey },
-          ]
-          const dataItem = await bundleDAO.createData(data, { tags })
-          items.push(dataItem)
+          // const file = this.files[i]
+          // const type = file.type
+          // const buffer = await readFileAsArrayBufferAsync(file)
+          // const data = new Uint8Array(buffer)
+          // const tags = [
+          //   { name: 'Content-Type', value: type },
+          //   { name: 'External-Network', value: 'DESO' },
+          //   { name: 'External-Owner', value: publicKey },
+          // ]
+          // const dataItem = await bundleDAO.createData(data, { tags })
+          const data = 'test string'
+          // const dataItem = createData(data, signer)
+          // await dataItem.sign(signer)
+          // console.log('[DESOSIGNER] data item valid?', await dataItem.isValid())
+          // const dataItem2 = await create
+
+          // const dataItem2 = createData(data, signer2)
+          // await dataItem2.sign(signer2)
+          // console.log('[ETHEREUMSIGNER] data item valid?', await dataItem2.isValid())
+
+          // items.push(dataItem2)
         }
 
-        const bundle = await bundleDAO.createBundle(items)
-        this.bundleTxId = await bundleDAO.postBundle(bundle)
-        if (this.bundleTxId) {
-          this.success = true
-          this.itemTxIds = bundle.getIds()
-        }
+        // const bundle = await bundleDAO.createBundle(items)
+        // this.bundleTxId = await bundleDAO.postBundle(bundle)
+        // if (this.bundleTxId) {
+        //   this.success = true
+        //   this.itemTxIds = bundle.getIds()
+        // }
       } catch (e) { console.error(e) }
       this.loading = false
     }
