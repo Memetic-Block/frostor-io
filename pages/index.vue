@@ -75,7 +75,9 @@
                 <v-file-input
                   multiple
                   show-size
-                  @change="onFileAdded($event)"
+                  v-model="files"
+                  :loading="loading"
+                  :disabled="(!!bundle && !!bundleDAO) || loading"
                 ></v-file-input>
               </v-col>
             </v-row>
@@ -87,14 +89,20 @@
                 <v-btn
                   @click="sign"
                   :loading="loading"
-                  :disabled="!hasFiles"
+                  :disabled="!hasFiles || (!!bundle && !!bundleDAO)"
                 >Sign</v-btn>
 
                 <v-btn
                   @click="post"
                   :loading="loading"
-                  :disabled="!signed"
+                  :disabled="!bundle || !bundleDAO"
                 >Post</v-btn>
+
+                <v-btn
+                  color="red"
+                  @click="reset"
+                  :loading="loading"
+                >Reset</v-btn>
               </v-col>
             </v-row>
 
@@ -139,58 +147,14 @@
 
 <script lang="ts">
 import { Component, Vue } from 'nuxt-property-decorator'
-import * as bip39 from 'bip39'
-import HDKey from 'hdkey'
-import { ec as EC } from 'elliptic'
-import bs58check from 'bs58check'
+import { Bundle } from 'arbundles'
 import {
-  BundleDAOClient,
-  InjectedDeSoSigner
+  BundleDAOClient
 } from '@artbycity/bundledao-client'
-import { createData } from 'arbundles'
-import { Signer } from 'arbundles/src/signing'
-import { SignatureConfig, SIG_CONFIG } from 'arbundles/src/constants'
-import { ethers } from 'ethers'
-import EthereumSigner from 'arbundles/src/signing/chains/ethereumSigner'
-import secp256k1 from 'secp256k1'
-import { arrayify, hashMessage } from 'ethers/lib/utils'
-import base64url from 'base64url'
 
 import ConnectButton from '~/components/ConnectButton.vue'
-import { debounce, readFileAsArrayBufferAsync, uuid } from '~/util'
+import { debounce, readFileAsArrayBufferAsync } from '~/util'
 
-
-const ec = new EC('secp256k1')
-const PUBLIC_KEY_PREFIXES = {
-  mainnet: {
-    bitcoin: [0x00],
-    deso: [0xcd, 0x14, 0x0],
-  },
-  testnet: {
-    bitcoin: [0x6f],
-    deso: [0x11, 0xc2, 0x0],
-  },
-}
-function seexHexToDeSoPublicKey(seedHex: string): string {
-  const privateKey = ec.keyFromPrivate(seedHex)
-  const prefix = PUBLIC_KEY_PREFIXES['mainnet'].deso
-  const key = privateKey.getPublic().encode('array', true)
-  const prefixAndKey = Uint8Array.from([...prefix, ...key])
-
-  return bs58check.encode(Buffer.from(prefixAndKey))
-}
-
-function publicKeyToECKeyPair(publicKey: string): EC.KeyPair {
-  // Sanity check similar to Base58CheckDecodePrefix from core/lib/base58.go
-  if (publicKey.length < 5) {
-    throw new Error('Failed to decode public key');
-  }
-  const decoded = bs58check.decode(publicKey);
-  const payload = Uint8Array.from(decoded).slice(3);
-
-  const ec = new EC('secp256k1');
-  return ec.keyFromPublic(payload, 'array');
-}
 
 @Component({
   components: {
@@ -200,17 +164,17 @@ function publicKeyToECKeyPair(publicKey: string): EC.KeyPair {
 export default class IndexPage extends Vue {
   files: File[] | null = null
   loading: boolean = false
-  signed: boolean = false
   bundleTxId: string = ''
   success: boolean = false
   itemTxIds: string[] = []
   prevItems: string[] = []
+  bundle: Bundle | null = null
+  identityUrl: string = this.$config.identityUrl
+  bundleDAO: BundleDAOClient | null = null
 
   $refs!: {
     identity: Vue & HTMLIFrameElement
   }
-
-  identityUrl: string = this.$config.identityUrl
 
   get authorized(): boolean {
     return !!this.$accessor.auth.address
@@ -218,6 +182,10 @@ export default class IndexPage extends Vue {
 
   get hasFiles(): boolean {
     return !!this.files && this.files.length > 0
+  }
+
+  get hasBundle(): boolean {
+    return !!this.bundle
   }
 
   // fetchOnServer = false
@@ -234,30 +202,12 @@ export default class IndexPage extends Vue {
   async reset() {
     this.files = null
     this.loading = false
-    this.signed = false
     this.bundleTxId = ''
     this.success = false
     this.itemTxIds = []
+    this.bundle = null
+    this.bundleDAO = null
   }
-
-  @debounce
-  async onFileAdded(files: File[] | undefined) {
-    if (files) {
-      this.files = files
-    }
-  }
-
-  // @debounce
-  // async validateMnemonic() {
-  //   this.loading = true
-  //   try {
-  //     const seed = bip39.mnemonicToSeedSync(this.mnemonic)
-  //     const keychain = HDKey.fromMasterSeed(seed).derive('m/44\'/0\'/0\'/0/0')
-  //     this.seedHex = keychain.privateKey.toString('hex')
-  //     this.publicKey = seexHexToDeSoPublicKey(this.seedHex)
-  //   } catch (e) { console.error(e) }
-  //   this.loading = false
-  // }
 
   @debounce
   async sign() {
@@ -265,52 +215,33 @@ export default class IndexPage extends Vue {
       this.loading = true
       try {
         if (this.$refs.identity.contentWindow) {
-
-        const bundleDAO = new BundleDAOClient({
-          bundleDAO: this.$config.bundleDAOConfig,
-          deso: {
-
+          const privateKey = {
+            desoPublicKey: this.$accessor.auth.address,
+            encryptedSeedHex: this.$accessor.auth.encryptedSeedHex,
+            accessLevelHmac: this.$accessor.auth.accessLevelHmac
           }
-        })
-
-
-
-          const signer = new InjectedDeSoSigner(
-            this.$accessor.auth.address,
-            (id, message) => {
-              console.log('signing with identity service', id)
-              this.$refs.identity.contentWindow!.postMessage({
-                id,
-                service: 'identity',
-                method: 'signETH',
-                payload: {
-                  unsignedHashes: [ message ],
-                  encryptedSeedHex: this.$accessor.auth.encryptedSeedHex,
-                  accessLevel: this.$accessor.auth.accessLevel,
-                  accessLevelHmac: this.$accessor.auth.accessLevelHmac
-                }
-              }, { targetOrigin: this.$config.identityUrl })
-            }
+          this.bundleDAO = new BundleDAOClient(
+            'deso',
+            privateKey,
+            this.$config.bundleDAOConfig
           )
 
-          const file = this.files![0]
-          const type = file.type
-          const buffer = await readFileAsArrayBufferAsync(file)
-          const data = new Uint8Array(buffer)
-          const tags = [
-            { name: 'Content-Type', value: type },
-            { name: 'External-Network', value: 'DESO' },
-          ]
-          const dataItem = createData(data, signer, { tags })
-          await dataItem.sign(signer)
-          console.log('[INJECTED] dataItem signed?', dataItem.isSigned())
-          console.log('[INJECTED] dataItem verified?', InjectedDeSoSigner.verify(
-            dataItem.rawOwner,//signer.publicKey,
-            await dataItem.getSignatureData(),
-            dataItem.rawSignature
-          ))
-          console.log('[INJECTED] dataItem valid?', await dataItem.isValid())
-          this.signed = true
+          let items = []
+          for (let i = 0; i < this.files.length; i++) {
+            const file = this.files[i]
+            const type = file.type
+            const buffer = await readFileAsArrayBufferAsync(file)
+            const data = new Uint8Array(buffer)
+            const tags = [
+              { name: 'Content-Type', value: type },
+              { name: 'External-Network', value: 'DESO' },
+              { name: 'External-Owner', value: this.$accessor.auth.address }
+            ]
+            const dataItem = await this.bundleDAO.createData(data, { tags })
+            items.push(dataItem)
+          }
+
+          this.bundle = this.bundleDAO.createBundle(items)
         }
       } catch (e) { console.error(e) }
       this.loading = false
@@ -319,48 +250,14 @@ export default class IndexPage extends Vue {
 
   @debounce
   async post() {
-    if (this.files) {
+    if (this.bundle && this.bundleDAO) {
       this.loading = true
       try {
-
-
-        // const signer = new DeSoSigner(this.mnemonic)
-        // const signer2 = new EthereumSigner(this.seedHex)
-
-        // console.log('[DESOSIGNER] public key', signer.publicKey.toString('hex'))
-        // console.log('[ETHEREUMSIGNER] public key', signer2.publicKey.toString('hex'))
-
-        const items = []
-        for (let i = 0; i < this.files.length; i++) {
-          // const file = this.files[i]
-          // const type = file.type
-          // const buffer = await readFileAsArrayBufferAsync(file)
-          // const data = new Uint8Array(buffer)
-          // const tags = [
-          //   { name: 'Content-Type', value: type },
-          //   { name: 'External-Network', value: 'DESO' },
-          //   { name: 'External-Owner', value: publicKey },
-          // ]
-          // const dataItem = await bundleDAO.createData(data, { tags })
-          const data = 'test string'
-          // const dataItem = createData(data, signer)
-          // await dataItem.sign(signer)
-          // console.log('[DESOSIGNER] data item valid?', await dataItem.isValid())
-          // const dataItem2 = await create
-
-          // const dataItem2 = createData(data, signer2)
-          // await dataItem2.sign(signer2)
-          // console.log('[ETHEREUMSIGNER] data item valid?', await dataItem2.isValid())
-
-          // items.push(dataItem2)
+        this.bundleTxId = await this.bundleDAO.postBundle(this.bundle)
+        if (this.bundleTxId) {
+          this.success = true
+          this.itemTxIds = this.bundle.getIds()
         }
-
-        // const bundle = await bundleDAO.createBundle(items)
-        // this.bundleTxId = await bundleDAO.postBundle(bundle)
-        // if (this.bundleTxId) {
-        //   this.success = true
-        //   this.itemTxIds = bundle.getIds()
-        // }
       } catch (e) { console.error(e) }
       this.loading = false
     }

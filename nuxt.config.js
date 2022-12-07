@@ -15,14 +15,19 @@ const arweaveConfig = {
     ? Number.parseInt(process.env.ARWEAVE_PORT)
     : 1984
 }
-const bundleDAOConfig = {
-  nodeUrl: 'http://localhost:3000/bundler'
-}
 const gateway = baseUrl === 'http://localhost:3000'
   ? 'http://localhost:1984'
   : 'https://bundledao-demo.artby.city/arweave'
 
-const identityUrl = 'http://localhost:4201'//'https://identity.deso.org'
+// const identityUrl = 'http://localhost:4201'
+const identityUrl = 'https://identity.deso.org'
+const bundleDAOConfig = {
+  nodeUrl: 'http://localhost:3000/bundler',
+  deso: {
+    identityUrl,
+    identityIframe: 'identity'
+  }
+}
 
 export default {
   // Global page headers: https://go.nuxtjs.dev/config-head

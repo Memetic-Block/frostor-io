@@ -32,7 +32,7 @@ export const mutations: MutationTree<AuthState> = {
 
 export const actions: ActionTree<AuthState, RootState> = {
   async connect({ commit }, { address, encryptedSeedHex, accessLevel, accessLevelHmac }) {
-    console.log('auth store connect()', address)
+    console.log('auth store connect()', address, encryptedSeedHex, accessLevel, accessLevelHmac)
     commit('SET_ADDRESS', { address, encryptedSeedHex, accessLevel, accessLevelHmac })
   },
 
