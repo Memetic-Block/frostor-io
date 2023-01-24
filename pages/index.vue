@@ -2,41 +2,38 @@
   <div class="index-page">
     <v-container fluid>
       <v-row>
-        <v-col cols="6">
-          <v-row class="logo-row">
-            <v-col offset="3" cols="9">
-              <div class="logo-container">
-                <v-img
-                  src="/logo-black.png"
-                  contain
-                  max-height="96"
-                  max-width="96"
-                  class="d-inline-flex"
-                />
-                <h1 class="text-h1 font-weight-thin d-inline-flex logo-text">
-                  BundleDAO
-                </h1>
-              </div>
+        <v-col cols="12" md="6">
+          <v-row :style="verticalMargin">
+            <v-col offset="2" offset-sm="3" cols="10" sm="9">
+              <LogoBanner />
             </v-col>
           </v-row>
 
           <v-row dense>
-            <v-col offset="3" cols="9">
-              <span class="text-h6 font-weight-light tagline">
+            <v-col cols="9" offset="3">
+              <span
+                class="
+                  text-md-caption
+                  text-lg-caption
+                  text-xl-h6
+                  font-weight-light
+                "
+                :style="taglineMargin"
+              >
                 Content ownership and permanence on Arweave
               </span>
             </v-col>
           </v-row>
         </v-col>
 
-        <v-col cols="6">
+        <v-col cols="12" md="6">
           <v-img
             class="mb-16"
             contain
             src="/WNrAt3Fn4P8Uw1rJus5zjdgpNyfu5qM0T4JY5JhAyJc.gif"
             position="right"
-            height="960"
-            max-height="960"
+            :height="splashImageSize"
+            :max-height="splashImageSize"
           />
         </v-col>
       </v-row>
@@ -47,10 +44,61 @@
 <script lang="ts">
 import { Component, Vue } from 'nuxt-property-decorator'
 
+import LogoBanner from '~/components/LogoBanner.vue'
 import { debounce } from '~/util'
 
-@Component
+@Component({
+  components: {
+    LogoBanner
+  }
+})
 export default class IndexPage extends Vue {
+  get verticalMargin() {
+    switch (this.$vuetify.breakpoint.name) {
+      case 'xs':
+      case 'sm':
+        return 'margin-top: 4em;'
+      case 'md':
+      case 'lg':
+        return 'margin-top: 12em;'
+      case 'xl':
+      default:
+        return 'margin-top: 24em;'
+    }
+  }
+
+  get taglineMargin() {
+    switch (this.$vuetify.breakpoint.name) {
+      case 'xs':
+        return 'margin-left: -84px;'
+      case 'sm':
+        return 'margin-left: -22px;'
+      case 'md':
+        return 'margin-left: 70px;'
+      case 'lg':
+        return 'margin-left: 105px;'
+      case 'xl':
+      default:
+        return 'margin-left: 107px;'
+    }
+  }
+
+  get splashImageSize() {
+    switch (this.$vuetify.breakpoint.name) {
+      case 'xs':
+        return '350'
+      case 'sm':
+        return '620'
+      case 'md':
+        return '500'
+      case 'lg':
+        return '620'
+      case 'xl':
+      default:
+        return '960'
+    }
+  }
+
   @debounce
   async onLearnMoreClicked() {
     this.$vuetify.goTo('#learn-more')
@@ -61,18 +109,5 @@ export default class IndexPage extends Vue {
 <style scoped>
 .logo-row {
   margin-top: 12em;
-}
-
-.logo-container {
-  display: flex;
-  margin-top: 10em;
-}
-
-.logo-text {
-  align-self: center;
-}
-
-.tagline {
-  margin-left: 107px;
 }
 </style>

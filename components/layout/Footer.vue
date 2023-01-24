@@ -2,7 +2,7 @@
   <v-footer absolute app :color="color" padless>
     <v-container fluid>
       <v-row>
-        <v-col offset="4" cols="1">
+        <v-col offset="4" cols="4" class="text-center">
           <v-btn
             href="https://diamondapp.com/u/bundledao"
             target="_blank"
@@ -11,17 +11,7 @@
           >
             DeSo
           </v-btn>
-        </v-col>
-        <v-col cols="1">
-          <v-btn
-            href="https://twitter.com/bundle_dao"
-            target="_blank"
-            icon
-          >
-            <v-icon>mdi-twitter</v-icon>
-          </v-btn>
-        </v-col>
-        <v-col cols="1">
+
           <v-btn
             href="https://openfund.com/d/BundleDAO"
             target="_blank"
@@ -30,8 +20,15 @@
           >
             OpenFund
           </v-btn>
-        </v-col>
-        <v-col cols="1">
+
+          <v-btn
+            href="https://twitter.com/bundle_dao"
+            target="_blank"
+            icon
+          >
+            <v-icon>mdi-twitter</v-icon>
+          </v-btn>
+
           <v-btn
             href="https://gitlab.com/art-by-city"
             target="_blank"

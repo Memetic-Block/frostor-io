@@ -1,28 +1,26 @@
 <template>
   <v-app-bar
     app
-    color="white"
+    color="transparent"
     fixed
     flat
     id="app-bar"
   >
-    <v-btn id="app-logo" text tile plain to="/">
-      <v-img max-height="36" max-width="36" src="/logo-black.png" contain />
-      BundleDAO
+    <v-btn id="app-logo" text tile plain to="/" :ripple="false">
+      <LogoBanner small />
     </v-btn>
 
     <v-spacer></v-spacer>
-
-    <!-- <v-btn
-      class="app-bar-button"
-      to="/demo"
-      text
-      tile
-    >
-      demo
-    </v-btn> -->
   </v-app-bar>
 </template>
+
+<script lang="ts">
+import { Component, Vue } from 'nuxt-property-decorator'
+import LogoBanner from '../LogoBanner.vue'
+
+@Component({ components: { LogoBanner } })
+export default class Header extends Vue {}
+</script>
 
 <style scoped>
 #app-bar >>> .v-toolbar__content {
