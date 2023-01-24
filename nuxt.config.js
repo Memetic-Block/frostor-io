@@ -1,6 +1,4 @@
-import colors from 'vuetify/es5/util/colors'
-
-const appName = 'BundleDAO Demo'
+const appName = 'BundleDAO'
 const baseUrl = process.env.BASE_URL || 'http://localhost:3000'
 const host = baseUrl === 'http://localhost:3000'
   ? 'localhost'
@@ -21,8 +19,10 @@ const gateway = baseUrl === 'http://localhost:3000'
 
 // const identityUrl = 'http://localhost:4201'
 const identityUrl = 'https://identity.deso.org'
+// const nodeUrl = 'http://localhost:3000/bundler'
+const nodeUrl = 'http://localhost:1985'
 const bundleDAOConfig = {
-  nodeUrl: 'http://localhost:3000/bundler',
+  nodeUrl,
   deso: {
     identityUrl,
     identityIframe: 'identity'
@@ -32,7 +32,7 @@ const bundleDAOConfig = {
 export default {
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
-    titleTemplate: `%s - ${appName}`,
+    titleTemplate: `%s`,
     title: appName,
     htmlAttrs: {
       lang: 'en',
@@ -48,6 +48,11 @@ export default {
 
   // Global CSS: https://go.nuxtjs.dev/config-css
   css: [],
+
+  pageTransition: 'fade-transition',
+
+  ssr: false,
+  target: 'static',
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
@@ -79,17 +84,9 @@ export default {
     proxy: true
   },
 
-  proxy: {
-    '/arweave/': {
-      target: 'http://localhost:1984',
-      pathRewrite: { '^/arweave/': '' },
-      followRedirects: true
-    },
-  },
+  proxy: {},
 
-  serverMiddleware: [
-    { path: '/bundler', handler: '~/server-middleware/index.ts' }
-  ],
+  serverMiddleware: [],
 
   server: {
     host,
@@ -100,18 +97,20 @@ export default {
   vuetify: {
     customVariables: ['~/assets/variables.scss'],
     theme: {
-      dark: true,
-      themes: {
-        dark: {
-          primary: colors.blue.darken2,
-          accent: colors.grey.darken3,
-          secondary: colors.amber.darken3,
-          info: colors.teal.lighten1,
-          warning: colors.amber.base,
-          error: colors.deepOrange.accent4,
-          success: colors.green.accent3,
-        },
-      },
+      dark: false,
+      default: 'light'
+      // dark: true,
+      // themes: {
+      //   dark: {
+      //     primary: colors.blue.darken2,
+      //     accent: colors.grey.darken3,
+      //     secondary: colors.amber.darken3,
+      //     info: colors.teal.lighten1,
+      //     warning: colors.amber.base,
+      //     error: colors.deepOrange.accent4,
+      //     success: colors.green.accent3,
+      //   },
+      // },
     },
   },
 

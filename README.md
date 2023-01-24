@@ -1,4 +1,4 @@
-# BundleDAO Demo
+# bundledao.io
 
 ## Install
 ```bash

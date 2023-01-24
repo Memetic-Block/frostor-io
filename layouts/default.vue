@@ -1,27 +1,22 @@
 <template>
   <v-app dark>
+    <Header />
+
     <v-main>
-      <v-container>
-        <Nuxt />
-      </v-container>
+      <Nuxt />
     </v-main>
-    <v-footer fixed app>
-      <span>{{ $config.eventName }}</span>
-      <v-spacer />
-      <ConnectButton />
-    </v-footer>
+
+    <Footer />
+
   </v-app>
 </template>
 
-<script>
+<script lang="ts">
 import { Component, Vue } from 'nuxt-property-decorator'
 
-import ConnectButton from '~/components/ConnectButton.vue'
+import Footer from '~/components/layout/Footer.vue'
+import Header from '~/components/layout/Header.vue'
 
-@Component({
-  components: {
-    ConnectButton
-  }
-})
+@Component({ components: { Footer, Header } })
 export default class DefaultLayout extends Vue {}
 </script>

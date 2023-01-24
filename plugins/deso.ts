@@ -101,7 +101,6 @@ export class DeSoPlugin {
         this.handleIdentityMessage(event.data, event.source!)
         break
       default:
-        console.log('got other service message', event.data)
         break
     }
   }
