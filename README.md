@@ -1,4 +1,4 @@
-# bundledao.io
+# frostor.io
 
 ## Install
 ```bash
