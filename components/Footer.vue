@@ -1,21 +1,21 @@
 <template>
-  <v-footer absolute app :color="color" padless>
+  <v-footer absolute app padless>
     <v-container fluid>
       <v-row>
         <v-col offset="4" cols="4" class="text-center">
           <v-btn
             href="https://diamondapp.com/u/bundledao"
             target="_blank"
-            text
+            variant="text"
             tile
           >
             DeSo
           </v-btn>
 
           <v-btn
-            href="https://openfund.com/d/BundleDAO"
+            href="https://openfund.com/d/bundledao"
             target="_blank"
-            text
+            variant="text"
             tile
           >
             OpenFund
@@ -24,7 +24,7 @@
           <v-btn
             href="https://twitter.com/bundle_dao"
             target="_blank"
-            icon
+            variant="text"
           >
             <v-icon>mdi-twitter</v-icon>
           </v-btn>
@@ -32,7 +32,7 @@
           <v-btn
             href="https://gitlab.com/art-by-city"
             target="_blank"
-            icon
+            variant="text"
           >
             <v-icon>mdi-gitlab</v-icon>
           </v-btn>
@@ -41,18 +41,3 @@
     </v-container>
   </v-footer>
 </template>
-
-<script lang="ts">
-import { Component, Vue } from 'nuxt-property-decorator'
-
-import ConnectButton from '../ConnectButton.vue'
-
-@Component({ components: { ConnectButton } })
-export default class Footer extends Vue {
-  get color(): string {
-    return this.$vuetify.theme.dark
-      ? 'black'
-      : 'white'
-  }
-}
-</script>

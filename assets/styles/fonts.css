@@ -1,0 +1,9 @@
+@font-face {
+    font-family: 'Proxima Nova Light';
+    src: url('/fonts/Fontspring-DEMO-proximanova-light.otf') format('opentype');
+}
+
+@font-face {
+    font-family: 'Proxima Nova Bold';
+    src: url('/fonts/Fontspring-DEMO-proximanova-bold.otf') format('opentype');
+}
