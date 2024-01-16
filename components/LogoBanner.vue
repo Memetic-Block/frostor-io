@@ -29,6 +29,7 @@
 <style scoped>
 .logo-banner {
   display: flex;
+  justify-content: center;
 }
 
 .logo-text {
