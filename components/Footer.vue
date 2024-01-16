@@ -13,15 +13,6 @@
           </v-btn>
 
           <v-btn
-            href="https://openfund.com/d/bundledao"
-            target="_blank"
-            variant="text"
-            tile
-          >
-            OpenFund
-          </v-btn>
-
-          <v-btn
             href="https://twitter.com/bundle_dao"
             target="_blank"
             variant="text"
@@ -30,11 +21,11 @@
           </v-btn>
 
           <v-btn
-            href="https://gitlab.com/art-by-city"
+            href="https://github.com/memetic-block"
             target="_blank"
             variant="text"
           >
-            <v-icon>mdi-gitlab</v-icon>
+            <v-icon>mdi-github</v-icon>
           </v-btn>
         </v-col>
       </v-row>

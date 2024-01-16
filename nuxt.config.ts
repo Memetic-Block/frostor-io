@@ -50,5 +50,14 @@ export default defineNuxtConfig({
   /**
    * Vue Router Config
    */
-  pages: true
+  pages: true,
+
+  modules: [ '@nuxtjs/google-fonts' ],
+
+  googleFonts: {
+    base64: false,
+    families: {
+      Roboto: [100, 300 , 400, 500, 700, 900 ]
+    }
+  }
 })
