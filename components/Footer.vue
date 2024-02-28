@@ -4,6 +4,13 @@
       <v-row>
         <v-col offset="4" cols="4" class="text-center">
           <v-btn
+            to="/about"
+            variant="text"
+          >
+            About
+          </v-btn>
+
+          <v-btn
             href="https://diamondapp.com/u/bundledao"
             target="_blank"
             variant="text"
